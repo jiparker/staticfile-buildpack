@@ -71,6 +71,8 @@ func Run(sf *Finalizer) error {
 	if err != nil {
 		sf.Log.Error("Unable to load Staticfile: %s", err.Error())
 		return err
+	} else {
+		sf.Log.BeginStep("Loading Staticfile")
 	}
 
 	appRootDir, err := sf.GetAppRootDir()
@@ -125,12 +127,20 @@ func (sf *Finalizer) WriteStartupFiles() error {
 func (sf *Finalizer) LoadStaticfile() error {
 	var hash StaticfileTemp
 	conf := &sf.Config
+	sf.Log.BeginStep("sf.BuildDir %s", sf.BuildDir)
 
 	err := sf.YAML.Load(filepath.Join(sf.BuildDir, "Staticfile"), &hash)
 	if err != nil && !os.IsNotExist(err) {
+		sf.Log.Error("Staticfile does not exist: %s", err.Error())
 		return err
 	}
-
+	sf.Log.BeginStep("loaded staticfile")
+	//sf.Log.BeginStep("PATH OF STATIC FILE %s",filepath.Join(sf.BuildDir, "Staticfile")
+	// for key, element := range hash {
+	// 	sf.Log.BeginStep("Key: %s => Element: %s",key, element)
+    // }
+	// sf.Log.BeginStep("RootDir: %s", hash.RootDir)
+	// sf.Log.BeginStep("PushState: %s", hash.PushState)
 	isEnabled := func(value string) bool {
 		return (value == "enabled" || value == "true")
 	}
@@ -162,6 +172,8 @@ func (sf *Finalizer) LoadStaticfile() error {
 	if isEnabled(hash.PushState) {
 		sf.Log.BeginStep("Enabling pushstate")
 		conf.PushState = true
+	} else {
+		sf.Log.BeginStep("DID NOT Enable pushstate")
 	}
 
 	if isEnabled(hash.HSTS) {
